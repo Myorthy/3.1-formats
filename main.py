@@ -1,51 +1,57 @@
+# for json
 import json
 
-def sortByLength(inputStr):
-        return len(inputStr)
-
-def repeat(words):
-  new_words = []
-  for word in words:
-    while words.count(word) > 1:
-      words.remove(word)
-  return new_words
-
 def top_10(items):
-  all_words = list()
-  for item in items["rss"]["channel"]["items"]:
-    words = item["description"].split()
-    for word in words:
-      if len(word) < 6:
-        words.remove(word)
-    all_words.extend(words)
-  all_words = sorted(all_words, key=sortByLength)
-  all_words.reverse()
-  repeat(all_words)
-  return all_words[:10]
+    all_words = list()
+    count_words = {}
+    top = []
+    for item in items["rss"]["channel"]["items"]:
+        words = item["description"].split()
+        for word in words:
+            if len(word) > 6:
+                all_words.append(word)
+        for word in all_words:
+            count_words[word] = all_words.count(word)
+    number = count_words.values()
+    number = sorted(number, reverse=True)
+    number = number[9]
+    for word, count in count_words.items():
+        if count >= number:
+            top.append(word)
+    # return top # результат больше 10 слов т.к. некоторые слова повторяются
+    #одинаковое количество раз
+    return top[:10] # для вывода ровно 10 слов
 
-# for json
-with open("newsafr.json") as datafile:
-  json_data = json.load(datafile)
-  print(top_10(json_data))
-     
+with open("newsafr.json", encoding='utf8') as datafile:
+    json_data = json.load(datafile)
+    print(top_10(json_data))
+
 # for xml
 import xml.etree.ElementTree as ET
-tree = ET.parse("newsafr.xml")     
 
 def top_10x(items):
-  all_words = list()
-  for item in items:
-    words = item["description"].split()
+    all_words = list()
+    count_words = {}
+    top = []
+    words = items.split()
     for word in words:
-      if len(word) < 6:
-        words.remove(word)
-    all_words.extend(words)
-  all_words = sorted(all_words, key=sortByLength)
-  all_words.reverse()
-  repeat(all_words)
-  return all_words[:10]
+        if len(word) > 6:
+            all_words.append(word)
+    for word in all_words:
+        count_words[word] = all_words.count(word)
+    number = count_words.values()
+    number = sorted(number, reverse=True)
+    number = number[9]
+    for word, count in count_words.items():
+        if count >= number:
+            top.append(word)
+    return top[:10]
 
+import xml.etree.ElementTree as ET
+tree = ET.parse("newsafr.xml")
 root = tree.getroot()
-xml.root = root.findall("channel/item")
-print(top_10x(xml.root))
-
+xml_root = root.findall("channel/item/description")
+xml_list = ''
+for news in xml_root:
+    xml_list += news.text
+print(top_10x(xml_list))
